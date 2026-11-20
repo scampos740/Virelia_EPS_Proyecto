@@ -1,0 +1,51 @@
+{
+  "name": "virelia-eps",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "frontend",
+    "services/*"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "db:init": "node scripts/init-db.mjs",
+    "dev": "node scripts/dev.mjs",
+    "build": "npm run build --workspace frontend",
+    "test": "npm run test:api && npm run test:frontend",
+    "test:run": "npm test",
+    "test:api": "node --test test/unit.test.js test/resilience.test.js",
+    "test:integration": "node --test --test-concurrency=1 test/integration.test.js test/mail-verification.test.js test/operations.test.js test/migration-permissions.test.js",
+    "test:frontend": "npm test --workspace frontend",
+    "test:coverage": "npm run test:coverage --workspace frontend",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:integration && npm run build && npm run test:production && npm run test:e2e",
+    "db:prepare": "node scripts/prepare-db.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "format": "prettier --write frontend/src shared services scripts gateway test tests docs",
+    "format:check": "prettier --check frontend/src shared services scripts gateway test tests docs",
+    "mail:check": "node scripts/check-mail.mjs",
+    "doctor:create": "node scripts/create-doctor.mjs",
+    "mail:setup": "node scripts/setup-gmail.mjs",
+    "start": "node scripts/start.mjs",
+    "db:runtime-users": "node scripts/runtime-users.mjs",
+    "db:backup": "node scripts/backup.mjs",
+    "db:restore": "node scripts/restore.mjs",
+    "affiliation:set": "node scripts/set-affiliation.mjs",
+    "slots:assign": "node scripts/assign-slot.mjs",
+    "test:production": "node --test test/static.test.js",
+    "doctor:especialidad": "node scripts/set-doctor-specialty.mjs"
+  },
+  "dependencies": {
+    "mysql2": "^3.15.0",
+    "nodemailer": "^10.1.7",
+    "pdfkit": "^0.20.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "prettier": "^3.6.2"
+  }
+}

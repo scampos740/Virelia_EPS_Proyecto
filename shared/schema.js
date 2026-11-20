@@ -1,0 +1,40 @@
+export const outbox = `CREATE TABLE IF NOT EXISTS outbox (id VARCHAR(36) PRIMARY KEY,payload JSON NOT NULL,delivered TINYINT DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
+export const auditTable = `CREATE TABLE IF NOT EXISTS audit_events(id VARCHAR(36) PRIMARY KEY,actor_id VARCHAR(36) NOT NULL,action VARCHAR(80) NOT NULL,resource_id VARCHAR(64) NOT NULL,created_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),INDEX(actor_id,created_at))`;
+export const limitTable = `CREATE TABLE IF NOT EXISTS request_limits(key_hash CHAR(64) PRIMARY KEY,count INT NOT NULL,window_start DATETIME NOT NULL)`;
+export const schemas = {
+  documentos: [
+    auditTable,
+    limitTable,
+    `CREATE TABLE IF NOT EXISTS certificates(code_hash CHAR(64) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,pdf_hash CHAR(64) NOT NULL,issued_at DATETIME NOT NULL,INDEX(user_id))`,
+  ],
+  afiliados: [
+    auditTable,
+    limitTable,
+    `CREATE TABLE IF NOT EXISTS password_resets(token_hash CHAR(64) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,expires_at DATETIME NOT NULL,used_at DATETIME NULL,INDEX(user_id))`,
+    `CREATE TABLE IF NOT EXISTS users(id VARCHAR(36) PRIMARY KEY,email VARCHAR(200) UNIQUE NOT NULL,password_hash VARCHAR(200) NOT NULL,email_verified TINYINT NOT NULL DEFAULT 0,role VARCHAR(16) NOT NULL DEFAULT 'paciente',nombres VARCHAR(100) NOT NULL,apellidos VARCHAR(100) NOT NULL,tipo_documento VARCHAR(10) NOT NULL,documento VARCHAR(30) NOT NULL,nacimiento DATE NOT NULL,telefono VARCHAR(20) NOT NULL,direccion VARCHAR(200) NOT NULL,ciudad VARCHAR(100) NOT NULL,estado VARCHAR(30) DEFAULT 'Activo',regimen VARCHAR(40) DEFAULT 'Subsidiado',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE KEY user_document(tipo_documento,documento))`,
+    `CREATE TABLE IF NOT EXISTS login_challenges(id_hash CHAR(64) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,browser_hash CHAR(64) NOT NULL,code_hash CHAR(64) NOT NULL,attempts TINYINT NOT NULL DEFAULT 0,send_count TINYINT NOT NULL DEFAULT 1,expires_at DATETIME NOT NULL,used_at DATETIME NULL,last_sent_at DATETIME NOT NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,INDEX(user_id,created_at))`,
+    `CREATE TABLE IF NOT EXISTS email_verifications(token_hash CHAR(64) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,expires_at DATETIME NOT NULL,used_at DATETIME NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,INDEX(user_id))`,
+    `CREATE TABLE IF NOT EXISTS sessions(token_hash CHAR(64) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,expires_at DATETIME NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)`,
+    `CREATE TABLE IF NOT EXISTS beneficiaries(id VARCHAR(36) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,nombre VARCHAR(150) NOT NULL,tipo_documento VARCHAR(10) NOT NULL DEFAULT 'TI',documento VARCHAR(30) NOT NULL,parentesco VARCHAR(30) NOT NULL,nacimiento DATE NOT NULL,UNIQUE KEY family_document(user_id,tipo_documento,documento),FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)`,
+    outbox,
+  ],
+  citas: [
+    auditTable,
+    `CREATE TABLE IF NOT EXISTS clinical_encounters(id VARCHAR(36) PRIMARY KEY,appointment_id VARCHAR(36) UNIQUE NOT NULL,user_id VARCHAR(36) NOT NULL,doctor_id VARCHAR(36) NOT NULL,doctor_name VARCHAR(201) NOT NULL,attended_at DATETIME NOT NULL,status VARCHAR(16) NOT NULL DEFAULT 'Borrador',reason TEXT NOT NULL,observations TEXT NOT NULL,diagnosis TEXT NOT NULL,plan TEXT NOT NULL,version INT NOT NULL DEFAULT 1,finalized_at DATETIME NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,INDEX(user_id,attended_at))`,
+    `CREATE TABLE IF NOT EXISTS clinical_addenda(id VARCHAR(36) PRIMARY KEY,encounter_id VARCHAR(36) NOT NULL,doctor_id VARCHAR(36) NOT NULL,doctor_name VARCHAR(201) NOT NULL,content TEXT NOT NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(encounter_id) REFERENCES clinical_encounters(id))`,
+    `CREATE TABLE IF NOT EXISTS appointment_locks(user_id VARCHAR(36) PRIMARY KEY)`,
+    `CREATE TABLE IF NOT EXISTS professional_slot_locks(professional_key VARCHAR(120) NOT NULL,fecha DATE NOT NULL,hora VARCHAR(5) NOT NULL,PRIMARY KEY(professional_key,fecha,hora))`,
+    `CREATE TABLE IF NOT EXISTS slots(id VARCHAR(36) PRIMARY KEY,especialidad VARCHAR(80) NOT NULL,profesional VARCHAR(100) NOT NULL,doctor_id VARCHAR(36) NULL,sede VARCHAR(100) NOT NULL,fecha DATE NOT NULL,hora VARCHAR(5) NOT NULL,available TINYINT DEFAULT 1,UNIQUE KEY doctor_time(doctor_id,fecha,hora))`,
+    `CREATE TABLE IF NOT EXISTS appointments(id VARCHAR(36) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,slot_id VARCHAR(36) NOT NULL,paciente_nombre VARCHAR(201) NOT NULL DEFAULT '',estado VARCHAR(30) DEFAULT 'Agendada',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(slot_id) REFERENCES slots(id),INDEX(user_id))`,
+    outbox,
+  ],
+  notificaciones: [
+    `CREATE TABLE IF NOT EXISTS notifications(id VARCHAR(36) PRIMARY KEY,event_id VARCHAR(36) UNIQUE NOT NULL,user_id VARCHAR(36) NOT NULL,titulo VARCHAR(160) NOT NULL,mensaje VARCHAR(2000) NOT NULL,link VARCHAR(150) NOT NULL,leida TINYINT DEFAULT 0,email_status VARCHAR(30) DEFAULT 'Sin configurar',email_text TEXT NULL,email_kind VARCHAR(30) NOT NULL DEFAULT 'notification',attempts INT NOT NULL DEFAULT 0,next_attempt_at DATETIME NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,INDEX(user_id))`,
+    `CREATE TABLE IF NOT EXISTS preferences(user_id VARCHAR(36) PRIMARY KEY,email_enabled TINYINT DEFAULT 1)`,
+  ],
+  atencion: [
+    `CREATE TABLE IF NOT EXISTS cases(id VARCHAR(36) PRIMARY KEY,user_id VARCHAR(36) NOT NULL,radicado VARCHAR(40) UNIQUE NOT NULL,tipo VARCHAR(30) NOT NULL,asunto VARCHAR(150) NOT NULL,descripcion VARCHAR(2000) NOT NULL,estado VARCHAR(30) DEFAULT 'Radicada',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,INDEX(user_id))`,
+    `CREATE TABLE IF NOT EXISTS messages(id VARCHAR(36) PRIMARY KEY,case_id VARCHAR(36) NOT NULL,mensaje VARCHAR(2000) NOT NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(case_id) REFERENCES cases(id))`,
+    outbox,
+  ],
+};

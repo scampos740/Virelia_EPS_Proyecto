@@ -1,0 +1,13 @@
+node_modules/
+.env
+**/dist/
+**/coverage/
+test-results/
+playwright-report/
+mysql-data/
+.env.production
+.env.*.local
+*.private.json
+*.enc
+*.log
+**/.DS_Store

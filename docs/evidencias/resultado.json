@@ -1,0 +1,40 @@
+{
+  "fecha": "2026-11-19",
+  "zona_horaria": "America/Bogota",
+  "node": "24.22.3",
+  "mysql": "8.4.7",
+  "api_y_resiliencia": {
+    "aprobadas": 19
+  },
+  "react": {
+    "aprobadas": 26
+  },
+  "integracion_mysql_smtp": {
+    "aprobadas": 35
+  },
+  "gateway_compilado": {
+    "aprobadas": 1
+  },
+  "build": "aprobado",
+  "e2e": {
+    "casos_bloqueados": 4,
+    "motivo": "Chromium no puede crear sockets IPC en este entorno"
+  },
+  "gmail_real": "no verificado",
+  "secretos_publicados": false,
+  "entrega": "local sin archivos de despliegue en nube",
+  "env_original_incluido": true,
+  "migracion_con_usuario_limitado": {
+    "reproducida": true,
+    "correccion_verificada": true,
+    "grants_sin_cambios": true,
+    "configuracion_global_mysql_sin_cambios": true,
+    "env_original_sin_cambios": true
+  },
+  "fecha_afiliacion_automatica": {
+    "nuevas_cuentas": true,
+    "zona": "America/Bogota",
+    "persistencia_y_certificado_verificados": true,
+    "cuentas_anteriores_conservadas": true
+  }
+}
