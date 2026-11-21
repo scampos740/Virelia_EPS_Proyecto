@@ -11,3 +11,10 @@ mysql-data/
 *.enc
 *.log
 **/.DS_Store
+
+# Archivos de configuracion y secretos
+.env.*
+!.env.example
+
+# Archivos comprimidos de transferencia
+*.tar.gz
